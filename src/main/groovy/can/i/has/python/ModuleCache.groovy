@@ -13,7 +13,7 @@ class ModuleCache {
     protected File cacheTempDir
     protected final Set<File> moduleDirs
     boolean autoDelete = false
-    protected boolean triedConsultingPythonIterpreter = false
+    protected List<String> alreadyTriedCommands = []
 
     ModuleCache(){
         moduleDirs = [] as Set
@@ -38,9 +38,12 @@ class ModuleCache {
         }
     }
 
-    void tryInspectingPythonRuntime(String pythonCommand="python"){
-        if (!triedConsultingPythonIterpreter) {
+    void tryInspectingPythonRuntime(String pythonCommand=null){
+        if (pythonCommand == null)
+            pythonCommand = System.getProperty("python.interpreter.command", "python")
+        if (!alreadyTriedCommands.contains(pythonCommand)) {
             try {
+
                 def process = pythonCommand.execute()
                 process.out << "import sys\n"
                 process.out << "print sys.path"
@@ -55,8 +58,8 @@ class ModuleCache {
             } catch (Throwable t) {
                 log.warn("Throwable caught while trying to use python outside this process!: $t")
             }
+            alreadyTriedCommands.add(pythonCommand)
         }
-        triedConsultingPythonIterpreter = true
     }
 
     void registerModuleDirectory(String path) {

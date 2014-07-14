@@ -1,6 +1,6 @@
 package can.i.has.docopt
 
-import static can.i.has.docopt.Docopt.*
+import static can.i.has.docopt.YesYouCan.*
 
 println docopt("""Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
