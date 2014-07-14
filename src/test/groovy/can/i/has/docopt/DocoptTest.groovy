@@ -105,4 +105,39 @@ class DocoptTest extends GroovyTestCase {
         }
     }
 
+    /**
+    def test_matching_paren():
+         with raises(DocoptLanguageError):
+            docopt('Usage: prog [a [b]')
+         with raises(DocoptLanguageError):
+             docopt('Usage: prog [a [b] ] c )')
+    */
+    void test_matching_paren() {
+        shouldFail(DocoptException) {
+            docopt('Usage: prog [a [b]')
+        }
+        shouldFail(DocoptException) {
+            docopt('Usage: prog [a [b] ] c )')
+        }
+    }
+
+    /**
+     def test_allow_double_dash():
+         assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+                                '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
+         assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+                                '-o 1') == {'-o': True, '<arg>': '1', '--': False}
+         with raises(DocoptExit):  # "--" is not allowed; FIXME?
+            docopt('usage: prog [-o] <arg>\noptions:-o', '-- -o')
+     */
+    void test_allow_double_dash(){
+        assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+                            ['--', '-o']) == ['-o': false, '<arg>': '-o', '--': true]
+        assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+                            ['-o', '1']) == ['-o': true, '<arg>': '1', '--': false]
+        shouldFail(DocoptException) {
+            docopt('usage: prog [-o] <arg>\noptions:-o', ['--', '-o'])
+        }
+    }
+
 }
