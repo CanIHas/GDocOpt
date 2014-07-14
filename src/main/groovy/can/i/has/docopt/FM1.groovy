@@ -14,8 +14,13 @@ println docopt("""Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT 
 
 
 
-println docopt("""Usage: yo [-h] [--fuck]
+println docopt("""Usage: yo [-h | --help] [--fuck]
 
--h      Help kurwa
---fuck  Because you like it
+-h, --help      Help kurwa
+--fuck          Because you like it
+""", ["--help"], false)
+println docopt("""Usage: yo [-h | --help] [--fuck]
+
+-h, --help      Help kurwa
+--fuck          Because you like it
 """, ["-h"], false)
