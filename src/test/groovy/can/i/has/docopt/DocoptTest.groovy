@@ -88,7 +88,7 @@ class DocoptTest extends GroovyTestCase {
          with raises(DocoptExit):
             docopt('Usage: prog -o ARG\nOptions: -o ARG', '-o')
      */
-    void test_short_options_error_handling() {
+    void testShortOptionsErrorHandling() {
         shouldFail(DocoptException) {
             docopt('Usage: prog -x\nOptions: -x  this\n -x  that')
         }
@@ -112,7 +112,7 @@ class DocoptTest extends GroovyTestCase {
          with raises(DocoptLanguageError):
              docopt('Usage: prog [a [b] ] c )')
     */
-    void test_matching_paren() {
+    void testMatchingParen() {
         shouldFail(DocoptException) {
             docopt('Usage: prog [a [b]')
         }
@@ -130,7 +130,7 @@ class DocoptTest extends GroovyTestCase {
          with raises(DocoptExit):  # "--" is not allowed; FIXME?
             docopt('usage: prog [-o] <arg>\noptions:-o', '-- -o')
      */
-    void test_allow_double_dash(){
+    void testAllowDoubleDash(){
         assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
                             ['--', '-o']) == ['-o': false, '<arg>': '-o', '--': true]
         assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
@@ -180,7 +180,7 @@ class DocoptTest extends GroovyTestCase {
          #with raises(SystemExit):
          #    docopt(doc, 'help')  XXX Maybe help command?
      */
-    void test_docopt() {
+    void testDocopt() {
         def doc = '''Usage: prog [-v] A
 
          Options: -v  Be verbose.'''
@@ -216,5 +216,137 @@ class DocoptTest extends GroovyTestCase {
             docopt(doc, ['--hel'])
         }
     }
+
+    /**
+     def test_language_errors():
+         with raises(DocoptLanguageError):
+            docopt('no usage with colon here')
+         with raises(DocoptLanguageError):
+            docopt('usage: here \n\n and again usage: here')
+     */
+
+    void testLanguageErrors() {
+         shouldFail(DocoptException) {
+            docopt('no usage with colon here')
+          }
+         shouldFail(DocoptException) {
+            docopt('usage: here \n\n and again usage: here')
+         }
+    }
+
+    /**
+     def test_issue_40():
+         with raises(SystemExit):  # i.e. shows help
+            docopt('usage: prog --help-commands | --help', '--help')
+         assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
+         '--aa': True}
+     */
+     void testIssue40() {
+         shouldFail(DocoptException) {
+            docopt('usage: prog --help-commands | --help', ['--help'])
+          }
+         assert docopt('usage: prog --aabb | --aa', ['--aa']) == ['--aabb': false,
+                        '--aa': true]
+     }
+
+    /**
+     def test_count_multiple_flags():
+         assert docopt('usage: prog [-v]', '-v') == {'-v': True}
+         assert docopt('usage: prog [-vv]', '') == {'-v': 0}
+         assert docopt('usage: prog [-vv]', '-v') == {'-v': 1}
+         assert docopt('usage: prog [-vv]', '-vv') == {'-v': 2}
+         with raises(DocoptExit):
+            docopt('usage: prog [-vv]', '-vvv')
+         assert docopt('usage: prog [-v | -vv | -vvv]', '-vvv') == {'-v': 3}
+         assert docopt('usage: prog -v...', '-vvvvvv') == {'-v': 6}
+         assert docopt('usage: prog [--ver --ver]', '--ver --ver') == {'--ver': 2}
+     */
+
+    void testCountMultipleFlags() {
+         assert docopt('usage: prog [-v]', ['-v']) == ['-v': true]
+         assert docopt('usage: prog [-vv]', []) == ['-v': 0]
+         assert docopt('usage: prog [-vv]', ['-v']) == ['-v': 1]
+         assert docopt('usage: prog [-vv]', ['-vv']) == ['-v': 2]
+         shouldFail(DocoptException) {
+            docopt('usage: prog [-vv]', ['-vvv'])
+            }
+         assert docopt('usage: prog [-v | -vv | -vvv]', ['-vvv']) == ['-v': 3]
+         assert docopt('usage: prog -v...', ['-vvvvvv']) == ['-v': 6]
+         assert docopt('usage: prog [--ver --ver]', ['--ver', '--ver']) == ['--ver': 2]
+         }
+
+    /**
+     def test_any_options_parameter():
+         with raises(DocoptExit):
+            docopt('usage: prog [options]', '-foo --bar --spam=eggs')
+         #    assert docopt('usage: prog [options]', '-foo --bar --spam=eggs',
+         #                  any_options=True) == {'-f': True, '-o': 2,
+         #                                         '--bar': True, '--spam': 'eggs'}
+         with raises(DocoptExit):
+            docopt('usage: prog [options]', '--foo --bar --bar')
+         #    assert docopt('usage: prog [options]', '--foo --bar --bar',
+         #                  any_options=True) == {'--foo': True, '--bar': 2}
+         with raises(DocoptExit):
+            docopt('usage: prog [options]', '--bar --bar --bar -ffff')
+         #    assert docopt('usage: prog [options]', '--bar --bar --bar -ffff',
+         #                  any_options=True) == {'--bar': 3, '-f': 4}
+         with raises(DocoptExit):
+            docopt('usage: prog [options]', '--long=arg --long=another')
+         #    assert docopt('usage: prog [options]', '--long=arg --long=another',
+         #                  any_options=True) == {'--long': ['arg', 'another']}
+     */
+
+
+    void testAnyOptionsParameter(){
+         shouldFail(DocoptException) {
+            docopt('usage: prog [options]', ['-foo', '--bar', '--spam=eggs'])
+               }
+         shouldFail(DocoptException) {
+            docopt('usage: prog [options]', ['--foo', '--bar', '--bar'])
+              }
+         shouldFail(DocoptException) {
+            docopt('usage: prog [options]', ['--bar', '--bar', '--bar', '-ffff'])
+             }
+         shouldFail(DocoptException) {
+            docopt('usage: prog [options]', ['--long=arg', '--long=another'])
+            }
+        }
+
+    /**
+     def test_default_value_for_positional_arguments():
+         doc = """Usage: prog [--data=<data>...]\n
+         Options:\n\t-d --data=<arg>    Input data [default: x]
+         """
+         a = docopt(doc, '')
+         assert a == {'--data': ['x']}
+         doc = """Usage: prog [--data=<data>...]\n
+         Options:\n\t-d --data=<arg>    Input data [default: x y]
+         """
+         a = docopt(doc, '')
+         assert a == {'--data': ['x', 'y']}
+         doc = """Usage: prog [--data=<data>...]\n
+         Options:\n\t-d --data=<arg>    Input data [default: x y]
+         """
+         a = docopt(doc, '--data=this')
+         assert a == {'--data': ['this']}
+     */
+     void testDefaultValueForPositionalArguments() {
+         def doc = """Usage: prog [--data=<data>...]\n
+         Options:\n\t-d --data=<arg>    Input data [default: x]
+         """
+         def a = docopt(doc, [])
+         assert a == ['--data': ['x']]
+         doc = """Usage: prog [--data=<data>...]\n
+         Options:\n\t-d --data=<arg>    Input data [default: x y]
+         """
+         a = docopt(doc, [])
+         assert a == ['--data': ['x', 'y']]
+         doc = """Usage: prog [--data=<data>...]\n
+         Options:\n\t-d --data=<arg>    Input data [default: x y]
+         """
+         a = docopt(doc, ['--data=this'])
+         assert a == ['--data': ['this']]
+      }
+
 
 }
