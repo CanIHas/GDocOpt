@@ -140,4 +140,81 @@ class DocoptTest extends GroovyTestCase {
         }
     }
 
+
+    /**
+     def test_docopt():
+         doc = '''Usage: prog [-v] A
+
+         Options: -v  Be verbose.'''
+         assert docopt(doc, 'arg') == {'-v': False, 'A': 'arg'}
+         assert docopt(doc, '-v arg') == {'-v': True, 'A': 'arg'}
+
+         doc = """Usage: prog [-vqr] [FILE]
+         prog INPUT OUTPUT
+         prog --help
+
+         Options:
+         -v  print status messages
+         -q  report only file names
+         -r  show all occurrences of the same error
+         --help
+
+         """
+         a = docopt(doc, '-v file.py')
+         assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
+                    'FILE': 'file.py', 'INPUT': None, 'OUTPUT': None}
+
+         a = docopt(doc, '-v')
+         assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
+                    'FILE': None, 'INPUT': None, 'OUTPUT': None}
+
+         with raises(DocoptExit):  # does not match
+            docopt(doc, '-v input.py output.py')
+
+         with raises(DocoptExit):
+            docopt(doc, '--fake')
+
+         with raises(SystemExit):
+            docopt(doc, '--hel')
+
+         #with raises(SystemExit):
+         #    docopt(doc, 'help')  XXX Maybe help command?
+     */
+    void test_docopt() {
+        def doc = '''Usage: prog [-v] A
+
+         Options: -v  Be verbose.'''
+        assert docopt(doc, ['arg']) == ['-v': false, 'A': 'arg']
+        assert docopt(doc, ['-v', 'arg']) == ['-v': true, 'A': 'arg']
+
+        doc = """Usage: prog [-vqr] [FILE]
+         prog INPUT OUTPUT
+         prog --help
+
+         Options:
+         -v  print status messages
+         -q  report only file names
+         -r  show all occurrences of the same error
+         --help
+
+         """
+        def a = docopt(doc, ['-v', 'file.py'])
+        assert a==['-v': true, '-q': false, '-r': false, '--help': false,
+            'FILE': 'file.py', 'INPUT': null, 'OUTPUT': null]
+
+        a = docopt(doc, ['-v'])
+        assert a == ['-v': true, '-q': false, '-r': false, '--help': false,
+            'FILE': null, 'INPUT': null, 'OUTPUT': null]
+
+        shouldFail(DocoptException) {
+            docopt(doc, ['-v', 'input.py', 'output.py'])
+        }
+        shouldFail(DocoptException) {
+            docopt(doc, ['--fake'])
+        }
+        shouldFail(DocoptException) {
+            docopt(doc, ['--hel'])
+        }
+    }
+
 }

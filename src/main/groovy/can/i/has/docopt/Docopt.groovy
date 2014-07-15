@@ -22,7 +22,11 @@ class Docopt {
         def pyOptions = pythonize(optionsFirst)
         def script = interpreter.wrapExpression("from docopt import docopt",
             "docopt($pyDoc, $pyArgv, $pyHelp, $pyVersion, $pyOptions)")
-        return interpreter.evaluate(script)
+        def result = interpreter.evaluate(script) as Map
+        def out = [:]
+        result.each {k, v -> out[k]=v}
+        out
+//        interpreter.evaluate(script) as Map
     }
 
     static Map<String, String> docopt(String doc, List<String> argv,
