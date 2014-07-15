@@ -28,6 +28,7 @@ class DocoptTest extends GroovyTestCase {
         assert docopt('Usage: prog a b', ['a', 'b']) == ['a': true, 'b': true]
         shouldFail(DocoptException, {docopt('Usage: prog a b', ['b', 'a'])})
     }
+
     /**
      def test_long_options_error_handling():
          #    with raises(DocoptLanguageError):
@@ -122,26 +123,6 @@ class DocoptTest extends GroovyTestCase {
     }
 
     /**
-     def test_allow_double_dash():
-         assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
-                                '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
-         assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
-                                '-o 1') == {'-o': True, '<arg>': '1', '--': False}
-         with raises(DocoptExit):  # "--" is not allowed; FIXME?
-            docopt('usage: prog [-o] <arg>\noptions:-o', '-- -o')
-     */
-    void testAllowDoubleDash(){
-        assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
-                            ['--', '-o']) == ['-o': false, '<arg>': '-o', '--': true]
-        assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
-                            ['-o', '1']) == ['-o': true, '<arg>': '1', '--': false]
-        shouldFail(DocoptException) {
-            docopt('usage: prog [-o] <arg>\noptions:-o', ['--', '-o'])
-        }
-    }
-
-
-    /**
      def test_docopt():
          doc = '''Usage: prog [-v] A
 
@@ -162,20 +143,20 @@ class DocoptTest extends GroovyTestCase {
          """
          a = docopt(doc, '-v file.py')
          assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
-                    'FILE': 'file.py', 'INPUT': None, 'OUTPUT': None}
+         'FILE': 'file.py', 'INPUT': None, 'OUTPUT': None}
 
          a = docopt(doc, '-v')
          assert a == {'-v': True, '-q': False, '-r': False, '--help': False,
-                    'FILE': None, 'INPUT': None, 'OUTPUT': None}
+         'FILE': None, 'INPUT': None, 'OUTPUT': None}
 
          with raises(DocoptExit):  # does not match
-            docopt(doc, '-v input.py output.py')
+         docopt(doc, '-v input.py output.py')
 
          with raises(DocoptExit):
-            docopt(doc, '--fake')
+         docopt(doc, '--fake')
 
          with raises(SystemExit):
-            docopt(doc, '--hel')
+         docopt(doc, '--hel')
 
          #with raises(SystemExit):
          #    docopt(doc, 'help')  XXX Maybe help command?
@@ -218,20 +199,38 @@ class DocoptTest extends GroovyTestCase {
     }
 
     /**
+     def test_allow_double_dash():
+         assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+                                '-- -o') == {'-o': False, '<arg>': '-o', '--': True}
+         assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+                                '-o 1') == {'-o': True, '<arg>': '1', '--': False}
+         with raises(DocoptExit):  # "--" is not allowed; FIXME?
+            docopt('usage: prog [-o] <arg>\noptions:-o', '-- -o')
+     */
+    void testAllowDoubleDash(){
+        assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+            ['--', '-o']) == ['-o': false, '<arg>': '-o', '--': true]
+        assert docopt('usage: prog [-o] [--] <arg>\nkptions: -o',
+            ['-o', '1']) == ['-o': true, '<arg>': '1', '--': false]
+        shouldFail(DocoptException) {
+            docopt('usage: prog [-o] <arg>\noptions:-o', ['--', '-o'])
+        }
+    }
+
+    /**
      def test_language_errors():
          with raises(DocoptLanguageError):
             docopt('no usage with colon here')
          with raises(DocoptLanguageError):
             docopt('usage: here \n\n and again usage: here')
      */
-
     void testLanguageErrors() {
-         shouldFail(DocoptException) {
+        shouldFail(DocoptException) {
             docopt('no usage with colon here')
-          }
-         shouldFail(DocoptException) {
+        }
+        shouldFail(DocoptException) {
             docopt('usage: here \n\n and again usage: here')
-         }
+        }
     }
 
     /**
@@ -241,13 +240,13 @@ class DocoptTest extends GroovyTestCase {
          assert docopt('usage: prog --aabb | --aa', '--aa') == {'--aabb': False,
          '--aa': True}
      */
-     void testIssue40() {
-         shouldFail(DocoptException) {
+    void testIssue40() {
+        shouldFail(DocoptException) {
             docopt('usage: prog --help-commands | --help', ['--help'])
-          }
-         assert docopt('usage: prog --aabb | --aa', ['--aa']) == ['--aabb': false,
-                        '--aa': true]
-     }
+        }
+        assert docopt('usage: prog --aabb | --aa', ['--aa']) == ['--aabb': false,
+            '--aa': true]
+    }
 
     /**
      def test_count_multiple_flags():
@@ -261,19 +260,18 @@ class DocoptTest extends GroovyTestCase {
          assert docopt('usage: prog -v...', '-vvvvvv') == {'-v': 6}
          assert docopt('usage: prog [--ver --ver]', '--ver --ver') == {'--ver': 2}
      */
-
     void testCountMultipleFlags() {
-         assert docopt('usage: prog [-v]', ['-v']) == ['-v': true]
-         assert docopt('usage: prog [-vv]', []) == ['-v': 0]
-         assert docopt('usage: prog [-vv]', ['-v']) == ['-v': 1]
-         assert docopt('usage: prog [-vv]', ['-vv']) == ['-v': 2]
-         shouldFail(DocoptException) {
+        assert docopt('usage: prog [-v]', ['-v']) == ['-v': true]
+        assert docopt('usage: prog [-vv]', []) == ['-v': 0]
+        assert docopt('usage: prog [-vv]', ['-v']) == ['-v': 1]
+        assert docopt('usage: prog [-vv]', ['-vv']) == ['-v': 2]
+        shouldFail(DocoptException) {
             docopt('usage: prog [-vv]', ['-vvv'])
-            }
-         assert docopt('usage: prog [-v | -vv | -vvv]', ['-vvv']) == ['-v': 3]
-         assert docopt('usage: prog -v...', ['-vvvvvv']) == ['-v': 6]
-         assert docopt('usage: prog [--ver --ver]', ['--ver', '--ver']) == ['--ver': 2]
-         }
+        }
+        assert docopt('usage: prog [-v | -vv | -vvv]', ['-vvv']) == ['-v': 3]
+        assert docopt('usage: prog -v...', ['-vvvvvv']) == ['-v': 6]
+        assert docopt('usage: prog [--ver --ver]', ['--ver', '--ver']) == ['--ver': 2]
+    }
 
     /**
      def test_any_options_parameter():
@@ -295,22 +293,20 @@ class DocoptTest extends GroovyTestCase {
          #    assert docopt('usage: prog [options]', '--long=arg --long=another',
          #                  any_options=True) == {'--long': ['arg', 'another']}
      */
-
-
     void testAnyOptionsParameter(){
-         shouldFail(DocoptException) {
+        shouldFail(DocoptException) {
             docopt('usage: prog [options]', ['-foo', '--bar', '--spam=eggs'])
-               }
-         shouldFail(DocoptException) {
-            docopt('usage: prog [options]', ['--foo', '--bar', '--bar'])
-              }
-         shouldFail(DocoptException) {
-            docopt('usage: prog [options]', ['--bar', '--bar', '--bar', '-ffff'])
-             }
-         shouldFail(DocoptException) {
-            docopt('usage: prog [options]', ['--long=arg', '--long=another'])
-            }
         }
+        shouldFail(DocoptException) {
+            docopt('usage: prog [options]', ['--foo', '--bar', '--bar'])
+        }
+        shouldFail(DocoptException) {
+            docopt('usage: prog [options]', ['--bar', '--bar', '--bar', '-ffff'])
+        }
+        shouldFail(DocoptException) {
+            docopt('usage: prog [options]', ['--long=arg', '--long=another'])
+        }
+    }
 
     /**
      def test_default_value_for_positional_arguments():
@@ -330,23 +326,23 @@ class DocoptTest extends GroovyTestCase {
          a = docopt(doc, '--data=this')
          assert a == {'--data': ['this']}
      */
-     void testDefaultValueForPositionalArguments() {
-         def doc = """Usage: prog [--data=<data>...]\n
+    void testDefaultValueForPositionalArguments() {
+        def doc = """Usage: prog [--data=<data>...]\n
          Options:\n\t-d --data=<arg>    Input data [default: x]
          """
-         def a = docopt(doc, [])
-         assert a == ['--data': ['x']]
-         doc = """Usage: prog [--data=<data>...]\n
+        def a = docopt(doc, [])
+        assert a == ['--data': ['x']]
+        doc = """Usage: prog [--data=<data>...]\n
          Options:\n\t-d --data=<arg>    Input data [default: x y]
          """
-         a = docopt(doc, [])
-         assert a == ['--data': ['x', 'y']]
-         doc = """Usage: prog [--data=<data>...]\n
+        a = docopt(doc, [])
+        assert a == ['--data': ['x', 'y']]
+        doc = """Usage: prog [--data=<data>...]\n
          Options:\n\t-d --data=<arg>    Input data [default: x y]
          """
-         a = docopt(doc, ['--data=this'])
-         assert a == ['--data': ['this']]
-      }
+        a = docopt(doc, ['--data=this'])
+        assert a == ['--data': ['this']]
+    }
 
     /**
      def test_issue_59():
@@ -354,14 +350,11 @@ class DocoptTest extends GroovyTestCase {
          assert docopt('usage: prog -l <a>\n'
              'options: -l <a>', ['-l', '']) == {'-l': ''}
      */
-
-
-     void testIssue59() {
-         assert docopt('usage: prog --long=<a>', ['--long=']) == ['--long': '']
-         assert docopt('usage: prog -l <a>\n'+
+    void testIssue59() {
+        assert docopt('usage: prog --long=<a>', ['--long=']) == ['--long': '']
+        assert docopt('usage: prog -l <a>\n'+
             'options: -l <a>', ['-l', '']) == ['-l': '']
-     }
-
+    }
 
     /**
      def test_options_first():
@@ -376,23 +369,20 @@ class DocoptTest extends GroovyTestCase {
             options_first=True) == {'--opt': False,
                                     '<args>': ['this', 'that', '--opt']}
      */
-
-
-     void test_options_first() {
-         assert docopt('usage: prog [--opt] [<args>...]',
-        ['--opt', 'this', 'that']) == ['--opt': true,
-         '<args>': ['this', 'that']]
-         assert docopt('usage: prog [--opt] [<args>...]',
-         ['this', 'that', '--opt']) == ['--opt': true,
-         '<args>': ['this', 'that']]
-         /*
-         TODO: work on API, so it is possible to omit first "true", and "null" in args.
-          */
-         assert docopt('usage: prog [--opt] [<args>...]',
-         ['this', 'that', '--opt'], true, null, true) == ['--opt': false,
-         '<args>': ['this', 'that', '--opt']]
-     }
-
+    void test_options_first() {
+        assert docopt('usage: prog [--opt] [<args>...]',
+            ['--opt', 'this', 'that']) == ['--opt': true,
+            '<args>': ['this', 'that']]
+        assert docopt('usage: prog [--opt] [<args>...]',
+            ['this', 'that', '--opt']) == ['--opt': true,
+            '<args>': ['this', 'that']]
+        /*
+        TODO: work on API, so it is possible to omit first "true", and "null" in args.
+         */
+        assert docopt('usage: prog [--opt] [<args>...]',
+            ['this', 'that', '--opt'], true, null, true) == ['--opt': false,
+            '<args>': ['this', 'that', '--opt']]
+    }
 
     /**
      def test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern():
@@ -405,13 +395,12 @@ class DocoptTest extends GroovyTestCase {
          assert args['-x'] is True
          assert args['-y'] is False
      */
+    void test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern() {
+        def args = docopt('usage: prog [-ab] [options]\n'+
+            'options: -x\n -y', '-ax')
 
-     void test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern() {
-         def args = docopt('usage: prog [-ab] [options]\n'+
-         'options: -x\n -y', '-ax')
-
-         assert args['-a'] && !args['-b'] && args['-x'] && !args['-y']
-     }
+        assert args['-a'] && !args['-b'] && args['-x'] && !args['-y']
+    }
 
     /**
      def test_issue_71_double_dash_is_not_a_valid_option_argument():
@@ -422,15 +411,13 @@ class DocoptTest extends GroovyTestCase {
          options: -l LEVEL''', '-l -- 1 2')
 
      */
-
-     void test_issue_71_double_dash_is_not_a_valid_option_argument() {
-         shouldFail(DocoptException) {
+    void test_issue_71_double_dash_is_not_a_valid_option_argument() {
+        shouldFail(DocoptException) {
             docopt('usage: prog [--log=LEVEL] [--] <args>...', ['--log', '--', '1', '2'])
-         }
+        }
         shouldFail(DocoptException) {
             docopt('''usage: prog [-l LEVEL] [--] <args>...
          options: -l LEVEL''', ['-l', '--', '1', '2'])
-         }
-     }
-
+        }
+    }
 }
