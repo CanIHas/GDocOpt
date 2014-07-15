@@ -348,5 +348,89 @@ class DocoptTest extends GroovyTestCase {
          assert a == ['--data': ['this']]
       }
 
+    /**
+     def test_issue_59():
+         assert docopt('usage: prog --long=<a>', '--long=') == {'--long': ''}
+         assert docopt('usage: prog -l <a>\n'
+             'options: -l <a>', ['-l', '']) == {'-l': ''}
+     */
+
+
+     void testIssue59() {
+         assert docopt('usage: prog --long=<a>', ['--long=']) == ['--long': '']
+         assert docopt('usage: prog -l <a>\n'+
+            'options: -l <a>', ['-l', '']) == ['-l': '']
+     }
+
+
+    /**
+     def test_options_first():
+         assert docopt('usage: prog [--opt] [<args>...]',
+             '--opt this that') == {'--opt': True,
+                                    '<args>': ['this', 'that']}
+         assert docopt('usage: prog [--opt] [<args>...]',
+             'this that --opt') == {'--opt': True,
+                                    '<args>': ['this', 'that']}
+         assert docopt('usage: prog [--opt] [<args>...]',
+            'this that --opt',
+            options_first=True) == {'--opt': False,
+                                    '<args>': ['this', 'that', '--opt']}
+     */
+
+
+     void test_options_first() {
+         assert docopt('usage: prog [--opt] [<args>...]',
+        ['--opt', 'this', 'that']) == ['--opt': true,
+         '<args>': ['this', 'that']]
+         assert docopt('usage: prog [--opt] [<args>...]',
+         ['this', 'that', '--opt']) == ['--opt': true,
+         '<args>': ['this', 'that']]
+         /*
+         TODO: work on API, so it is possible to omit first "true", and "null" in args.
+          */
+         assert docopt('usage: prog [--opt] [<args>...]',
+         ['this', 'that', '--opt'], true, null, true) == ['--opt': false,
+         '<args>': ['this', 'that', '--opt']]
+     }
+
+
+    /**
+     def test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern():
+         args = docopt('usage: prog [-ab] [options]\n'
+                            'options: -x\n -y', '-ax')
+         # Need to use `is` (not `==`) since we want to make sure
+         # that they are not 1/0, but strictly True/False:
+         assert args['-a'] is True
+         assert args['-b'] is False
+         assert args['-x'] is True
+         assert args['-y'] is False
+     */
+
+     void test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern() {
+         def args = docopt('usage: prog [-ab] [options]\n'+
+         'options: -x\n -y', '-ax')
+
+         assert args['-a'] && !args['-b'] && args['-x'] && !args['-y']
+     }
+
+    /**
+     def test_issue_71_double_dash_is_not_a_valid_option_argument():
+         with raises(DocoptExit):
+             docopt('usage: prog [--log=LEVEL] [--] <args>...', '--log -- 1 2')
+         with raises(DocoptExit):
+             docopt('''usage: prog [-l LEVEL] [--] <args>...
+         options: -l LEVEL''', '-l -- 1 2')
+
+     */
+
+     void test_issue_71_double_dash_is_not_a_valid_option_argument() {
+         shouldFail(DocoptException) {
+            docopt('usage: prog [--log=LEVEL] [--] <args>...', ['--log', '--', '1', '2'])
+         }
+        shouldFail(DocoptException) {
+            docopt('''usage: prog [-l LEVEL] [--] <args>...
+         options: -l LEVEL''', ['-l', '--', '1', '2'])
+         }
+     }
 
 }
